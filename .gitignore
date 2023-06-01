@@ -1,0 +1,55 @@
+# Serverless directories
+.serverless
+
+# golang output binary directory
+bin
+.idea/
+
+# package directories
+node_modules
+pkg
+src/github.com/
+src/golang.org/
+src/gonum.org/
+coverage
+vendor
+/coverage.html
+/coverage.out
+.vendor-new/
+
+my-artifacts
+# Jetbrains
+# package directories
+# Serverless directories
+/.serverless
+
+# Webpack directories
+/.webpack
+*.js
+# OSX Files
+.DS_Store
+
+# Kushki files
+.envrc
+!src/handler/completeValidateToken.js
+!.serverless_plugins/**/*.js
+/.jscpd
+.env
+.env.yml
+!wallaby.conf.js
+npm-debug.log
+/coverage
+/.nyc_output
+.coverage/
+.cache-loader
+__MACOSX
+/output.pdf
+.kushki/
+cc-test-reporter
+!ServerlessScripts.js
+.vscode/
+.floo
+.flooignore
+
+
+vendor.orig
