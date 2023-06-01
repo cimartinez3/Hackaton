@@ -1,0 +1,19 @@
+service: swift-service
+
+frameworkVersion: "3"
+
+provider:
+  name: openwhisk
+  runtime: swift
+
+functions:
+  time:
+    handler: time.main
+    events:
+      - http:
+          path: time
+          method: get
+
+
+plugins:
+  - serverless-openwhisk

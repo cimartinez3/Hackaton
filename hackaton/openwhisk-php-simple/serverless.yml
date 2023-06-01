@@ -1,0 +1,14 @@
+service: php-service
+
+frameworkVersion: "3"
+
+provider:
+  name: openwhisk
+  runtime: php
+
+functions:
+  greeting:
+    handler: handler.greeting
+
+plugins:
+  - serverless-openwhisk

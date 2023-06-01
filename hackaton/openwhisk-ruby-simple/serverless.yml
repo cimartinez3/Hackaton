@@ -1,0 +1,14 @@
+service: ruby-service
+
+frameworkVersion: "3"
+
+provider:
+  name: openwhisk
+  runtime: ruby2.7
+
+functions:
+  greeting:
+    handler: handler.main
+
+plugins:
+  - serverless-openwhisk

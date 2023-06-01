@@ -1,0 +1,44 @@
+service: &service
+  name: usrv-hackaton
+variablesResolutionMode: 20210326
+provider:
+  name: aws
+  architecture: arm64
+  runtime: provided.al2
+  stage: ${env:USRV_STAGE}
+  timeout: 29
+  environment:
+    USRV_NAME: ${self:custom.service.name}
+custom:
+  service: *service
+  prefix: /${self:provider.stage}/${self:service.name}
+  version: v1
+  SSM_REGION: ${file(ServerlessScripts.js):awsRegion.${env:USRV_STAGE}}
+  tagEnv:
+    ci: TESTING
+    qa: TESTING
+    uat: TESTING
+    stg: TESTING
+    primary: PRODUCTION
+  enabled:
+    ci: true
+    qa: true
+    uat: true
+    stg: false
+    primary: false
+  deploymentSettings:
+    stages:
+      - ci
+      - qa
+      - stg
+      - uat
+      - primary
+    type: ${file(ServerlessScripts.js):canaryDeploymentType.${env:USRV_STAGE}}
+    alias: Live
+  apigwBinary:
+    types:
+      - "text/plain"
+  cloudWatchLogsTags: ${self:custom.kushkiTag}
+  resources:
+package:
+  individually: true

@@ -1,0 +1,18 @@
+service: eshop-products
+frameworkVersion: "3"
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: ap-southeast-1
+  apiGateway:
+    restApiId:
+      "Fn::ImportValue": SharedGW-restApiId
+    restApiRootResourceId:
+      "Fn::ImportValue": SharedGW-rootResourceId
+functions:
+  get-products:
+    handler: handler.getProducts
+    events:
+      - http:
+          path: products/list
+          method: get

@@ -1,0 +1,16 @@
+service: aws-python-line-echo-bot
+frameworkVersion: "3"
+
+provider:
+  name: aws
+  runtime: python3.9
+
+functions:
+  line_bot:
+    handler: handler.webhook
+    events:
+      - http:
+          path: /webhook
+          method: POST
+plugins:
+  - serverless-python-requirements

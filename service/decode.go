@@ -1,0 +1,101 @@
+package service
+
+import (
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/sha512"
+	"crypto/x509"
+	"encoding/json"
+	"encoding/pem"
+	"fmt"
+	"io/ioutil"
+	"log"
+)
+
+type IRSA interface {
+	DecodeRSA(data []byte, out interface{}) error
+	EncodeRSA(data []byte) ([]byte, error)
+}
+
+type RSA struct {
+	PrivateKey *rsa.PrivateKey
+	PublicKey  *rsa.PublicKey
+}
+
+func NewRSAService() IRSA {
+	priBytes, _ := ioutil.ReadFile("./keys/id_rsa_ksk")
+	pubBytes, _ := ioutil.ReadFile("./keys/id_rsa_ksk.pub")
+	privateKey := BytesToPrivateKey(priBytes)
+	publicKey := BytesToPublicKey(pubBytes)
+	return &RSA{
+		PrivateKey: privateKey,
+		PublicKey:  publicKey,
+	}
+}
+
+func (r *RSA) DecodeRSA(data []byte, out interface{}) error {
+	hash := sha512.New()
+	plaintext, err := rsa.DecryptOAEP(hash, rand.Reader, r.PrivateKey, data, nil)
+	fmt.Println(plaintext)
+	if err != nil {
+		fmt.Print("Error in decode RSA: ", err)
+		return err
+	}
+	if err := json.Unmarshal(plaintext, &out); err != nil {
+		fmt.Print("Error in decode unmarshal: ", err)
+		return err
+	}
+	return nil
+}
+func (r *RSA) EncodeRSA(data []byte) ([]byte, error) {
+	hash := sha512.New()
+	ciphertext, err := rsa.EncryptOAEP(hash, rand.Reader, r.PublicKey, data, nil)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+	return ciphertext, nil
+}
+
+func BytesToPrivateKey(priv []byte) *rsa.PrivateKey {
+	block, _ := pem.Decode(priv)
+	enc := x509.IsEncryptedPEMBlock(block)
+	b := block.Bytes
+	var err error
+	if enc {
+		log.Println("is encrypted pem block")
+		b, err = x509.DecryptPEMBlock(block, nil)
+		if err != nil {
+			fmt.Println("Error in DecryptPENBloc")
+		}
+	}
+	key, err := x509.ParsePKCS1PrivateKey(b)
+	if err != nil {
+		fmt.Println("Error in ParsePKCS1 Private key")
+	}
+	return key
+}
+
+// BytesToPublicKey bytes to public key
+func BytesToPublicKey(pub []byte) *rsa.PublicKey {
+	block, _ := pem.Decode(pub)
+	enc := x509.IsEncryptedPEMBlock(block)
+	b := block.Bytes
+	var err error
+	if enc {
+		log.Println("is encrypted pem block")
+		b, err = x509.DecryptPEMBlock(block, nil)
+		if err != nil {
+			fmt.Println("Error in decryptPEM BLOCK")
+		}
+	}
+	ifc, err := x509.ParsePKIXPublicKey(b)
+	if err != nil {
+		fmt.Println("Error in ParsePKIXPublicKey")
+	}
+	key, ok := ifc.(*rsa.PublicKey)
+	if !ok {
+		fmt.Println("IFC")
+	}
+	return key
+}

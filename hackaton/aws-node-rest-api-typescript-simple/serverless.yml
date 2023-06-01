@@ -1,0 +1,19 @@
+org: serverlessinc
+app: aws-node-rest-api-typescript
+service: aws-node-rest-api-typescript
+frameworkVersion: "3"
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+
+functions:
+  hello:
+    handler: handler.hello
+    events:
+      - http:
+          path: /
+          method: get
+
+plugins:
+  - serverless-plugin-typescript
