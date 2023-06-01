@@ -22,9 +22,9 @@ type RSA struct {
 	PublicKey  *rsa.PublicKey
 }
 
-func NewRSAService() IRSA {
-	priBytes, _ := ioutil.ReadFile("./keys/id_rsa_ksk")
-	pubBytes, _ := ioutil.ReadFile("./keys/id_rsa_ksk.pub")
+func NewRSAService(private, public string) IRSA {
+	priBytes, _ := ioutil.ReadFile(private)
+	pubBytes, _ := ioutil.ReadFile(public)
 	privateKey := BytesToPrivateKey(priBytes)
 	publicKey := BytesToPublicKey(pubBytes)
 	return &RSA{

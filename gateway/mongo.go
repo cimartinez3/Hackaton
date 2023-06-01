@@ -12,7 +12,7 @@ import (
 
 type IMongo interface {
 	GetDocument(email string) bool
-	PutDocument(request schemas.TokenRequest) bool
+	PutDocument(request interface{}) bool
 }
 
 type Mongo struct {
@@ -71,7 +71,7 @@ func (m *Mongo) GetDocument(email string) bool {
 	return true
 }
 
-func (m *Mongo) PutDocument(request schemas.TokenRequest) bool {
+func (m *Mongo) PutDocument(request interface{}) bool {
 	res, err := m.conn.InsertOne(context.Background(), request)
 
 	if err != nil {

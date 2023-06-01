@@ -8,6 +8,7 @@ require (
 	github.com/fnproject/fdk-go v0.0.32
 	github.com/gorilla/mux v1.8.0
 	github.com/olivere/elastic v6.2.37+incompatible
+	github.com/satori/go.uuid v1.2.0
 	github.com/serverless/examples v0.0.0-20230530110756-0112f4473a46
 	github.com/tencentyun/scf-go-lib v0.0.0-20211123032342-f972dcd16ff6
 	go.mongodb.org/mongo-driver v1.11.6
