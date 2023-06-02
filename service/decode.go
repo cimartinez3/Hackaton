@@ -5,8 +5,6 @@ import (
 	"crypto/rsa"
 	"crypto/sha256"
 	"crypto/x509"
-	"encoding/base64"
-	"encoding/json"
 	"encoding/pem"
 	"fmt"
 	"io/ioutil"
@@ -14,7 +12,7 @@ import (
 )
 
 type IRSA interface {
-	DecodeRSA(data string, out interface{}) error
+	DecodeRSA(data string) (string, error)
 	EncodeRSA(data []byte) ([]byte, error)
 }
 
@@ -34,21 +32,15 @@ func NewRSAService(private, public string) IRSA {
 	}
 }
 
-func (r *RSA) DecodeRSA(data string, out interface{}) error {
-	rawDecodedText, _ := base64.StdEncoding.DecodeString(data)
-
+func (r *RSA) DecodeRSA(data string) (string, error) {
 	hash := sha256.New()
-	plaintext, err := rsa.DecryptOAEP(hash, rand.Reader, r.PrivateKey, rawDecodedText, nil)
-	fmt.Println(plaintext)
+	plaintext, err := rsa.DecryptOAEP(hash, rand.Reader, r.PrivateKey, []byte(data), nil)
 	if err != nil {
 		fmt.Print("Error in decode RSA: ", err)
-		return err
+		return "", err
 	}
-	if err := json.Unmarshal(plaintext, &out); err != nil {
-		fmt.Print("Error in decode unmarshal: ", err)
-		return err
-	}
-	return nil
+
+	return string(plaintext), nil
 }
 func (r *RSA) EncodeRSA(data []byte) ([]byte, error) {
 	hash := sha256.New()

@@ -23,9 +23,18 @@ func NewTokenService() *TokenService {
 	}
 }
 
-func (t *TokenService) ProcessToken(req *schemas.TokenRequest) (string, error) {
+func (t *TokenService) ProcessToken(req *schemas.TokenRequest) (*schemas.TokenResponse, error) {
 	tokenRequest := &schemas.TokenRequestSource{}
-	_ = t.Decoder.DecodeRSA(req.Token, tokenRequest)
+	/*_ = t.Decoder.DecodeRSA(req.Token, tokenRequest)*/
+	tokenRequest.Card = schemas.Card{
+		Name:        "Anthony Torres",
+		Number:      "453473482462342",
+		ExpiryMonth: "02",
+		ExpiryYear:  "03",
+		Cvv:         "123",
+	}
+	tokenRequest.Client.Email = "anthonybastidas48@gmail.com"
+	tokenRequest.Source = "001"
 	switch tokenRequest.Source {
 	case "001":
 		res := t.generateVaultToken(*tokenRequest)
@@ -39,16 +48,23 @@ func (t *TokenService) ProcessToken(req *schemas.TokenRequest) (string, error) {
 			"month":  res[2],
 			"year":   res[3],
 			"email":  res[4],
+			"name":   res[5],
 			"id":     uuid.Must(uuid.NewV4(), nil).String(),
 		}
 		t.Mongo.PutDocument(save)
-		return uEnc, nil
+		response := &schemas.TokenResponse{
+			Token: uEnc,
+			Type:  "001",
+		}
+		return response, nil
 	case "002":
+		cvv, _ := t.DecoderVault.EncodeRSA([]byte(tokenRequest.Card.Cvv))
+		t.Mongo.UpdateDocument(tokenRequest.CardId, string(cvv))
 	default:
-		return "false", errors.New("invalid source")
+		return nil, errors.New("invalid source")
 
 	}
-	return "", nil
+	return nil, nil
 }
 
 func (t *TokenService) generateVaultToken(req schemas.TokenRequestSource) []string {
@@ -56,5 +72,5 @@ func (t *TokenService) generateVaultToken(req schemas.TokenRequestSource) []stri
 	cvvEncode, _ := t.DecoderVault.EncodeRSA([]byte(req.Card.Cvv))
 	monthEncode, _ := t.DecoderVault.EncodeRSA([]byte(req.Card.ExpiryMonth))
 	yearEncode, _ := t.DecoderVault.EncodeRSA([]byte(req.Card.ExpiryYear))
-	return []string{string(numberEncode), string(cvvEncode), string(monthEncode), string(yearEncode), req.Client.Email}
+	return []string{string(numberEncode), string(cvvEncode), string(monthEncode), string(yearEncode), req.Client.Email, req.Card.Name}
 }

@@ -7,56 +7,54 @@ import (
 	"text/template"
 )
 
-type IEamil interface {
-	SendOTP(email string) bool
+type IEmail interface {
+	SendOTP(email string) error
 }
 
 type Email struct {
 }
 
-func NewEmailService() IEamil {
+func NewEmailService() IEmail {
 	return &Email{}
 }
 
-func (e *Email) SendOTP(email string) bool {
-	// Sender data.
-	from := "theboyshackaton@hotmail.com"
-	password := "_96notakcahsyobeht"
+func (e *Email) SendOTP(email string) error {
+	from := "theboyshackaton@gmail.com"
+	password := "smnlojgcmhdzelqo"
 
 	// Receiver email address.
 	to := []string{
-		"carlos.martinez@kushkipagos.com",
+		email,
 	}
 
 	// smtp server configuration.
-	smtpHost := "smtp.office365.com"
+	smtpHost := "smtp.gmail.com"
 	smtpPort := "587"
 
 	// Authentication.
 	auth := smtp.PlainAuth("", from, password, smtpHost)
 
-	t, _ := template.ParseFiles("template.html")
+	t, err := template.ParseFiles("./gateway/template.html")
+
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
 
 	var body bytes.Buffer
 
 	mimeHeaders := "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n"
-	body.Write([]byte(fmt.Sprintf("Subject: This is a test subject \n%s\n\n", mimeHeaders)))
+	body.Write([]byte(fmt.Sprintf("Subject: OTP Verification \n%s\n\n", mimeHeaders)))
 
-	t.Execute(&body, struct {
-		Name    string
-		Message string
-	}{
-		Name:    "Charlie martinez",
-		Message: "This is a test message in a HTML template",
-	})
+	t.Execute(&body, struct{}{})
 
 	// Sending email.
-	err := smtp.SendMail(smtpHost+":"+smtpPort, auth, from, to, body.Bytes())
+	err = smtp.SendMail(smtpHost+":"+smtpPort, auth, from, to, body.Bytes())
 	if err != nil {
 		fmt.Println(err)
-		return false
+		return err
 	}
-	fmt.Println("Email Sent!")
 
-	return true
+	fmt.Println("Email Sent!")
+	return nil
 }

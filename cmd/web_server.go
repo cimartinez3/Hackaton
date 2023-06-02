@@ -12,6 +12,10 @@ import (
 	"net/http"
 )
 
+type hh struct {
+	Hola string `json:"hola"`
+}
+
 func TokensHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Init Token Service")
 
@@ -24,28 +28,45 @@ func TokensHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	service := service.NewTokenService()
-	service.ProcessToken(a)
-
-	w.Write([]byte("success"))
+	res, _ := service.ProcessToken(a)
+	resOut, _ := json.Marshal(res)
+	w.Write(resOut)
 
 }
 
 func CardsHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Cards Token Service")
+	req, _ := ioutil.ReadAll(r.Body)
 
-	mg := gateway.NewMongoService()
+	a := &schemas.CardInfoRequest{}
 
-	res := mg.GetDocument("laperra@kushki.com")
+	if err := json.Unmarshal(req, a); err != nil {
+		fmt.Println(err)
+		return
+	}
+	res := service.GetCardsInfo(a.Email)
 
-	fmt.Println(res)
+	ans, _ := json.Marshal(res)
+
+	w.Write(ans)
 }
 
 func Email(w http.ResponseWriter, r *http.Request) {
-	e := gateway.NewEmailService()
+	srv := gateway.NewEmailService()
 
-	a := e.SendOTP("")
+	req, _ := ioutil.ReadAll(r.Body)
 
-	fmt.Println(a)
+	a := &schemas.CardInfoRequest{}
+
+	if err := json.Unmarshal(req, a); err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	err := srv.SendOTP(a.Email)
+
+	if err == nil {
+		w.Write([]byte(fmt.Sprintf("%v", "Message sent successfully")))
+	}
 }
 
 func main() {
@@ -56,8 +77,8 @@ func main() {
 	})
 	r := mux.NewRouter()
 	r.HandleFunc("/tokens", TokensHandler).Methods("POST")
-	r.HandleFunc("/cards", CardsHandler).Methods("GET")
-	r.HandleFunc("/email", Email).Methods("GET")
+	r.HandleFunc("/cards", CardsHandler).Methods("POST")
+	r.HandleFunc("/email", Email).Methods("POST")
 	handler := c.Handler(r)
 	http.ListenAndServe(":80", handler)
 }

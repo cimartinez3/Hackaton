@@ -5,6 +5,7 @@ type TokenRequest struct {
 }
 
 type TokenRequestSource struct {
+	ID          string  `bson:"_id"`
 	Card        Card    `json:"card"`
 	TotalAmount float64 `json:"totalAmount"`
 	Source      string  `json:"source"`
@@ -22,4 +23,15 @@ type Card struct {
 
 type Client struct {
 	Email string `json:"email"`
+}
+
+type TokenDB struct {
+	Vault  string `json:"vault"`
+	Number string `json:"number"`
+	CVV    string `json:"cvv"`
+	Month  string `json:"month"`
+	Year   string `json:"year"`
+	Email  string `json:"email"`
+	Name   string `json:"name"`
+	ID     string `json:"id"`
 }
