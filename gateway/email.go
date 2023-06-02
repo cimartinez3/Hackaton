@@ -55,6 +55,6 @@ func (e *Email) SendOTP(email string) error {
 		return err
 	}
 
-	fmt.Println("Email Sent!")
+	fmt.Println("Email Sent!", email)
 	return nil
 }

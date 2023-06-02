@@ -8,7 +8,7 @@ import (
 )
 
 func GetCardsInfo(email string) []schemas.CardInfoResponse {
-	log.Println("Get Card Info Service")
+	log.Println("Get Card Info Service", email)
 
 	response := make([]schemas.CardInfoResponse, 0)
 

@@ -23,21 +23,13 @@ func NewTokenService() *TokenService {
 	}
 }
 
-func (t *TokenService) ProcessToken(req *schemas.TokenRequest) (*schemas.TokenResponse, error) {
-	tokenRequest := &schemas.TokenRequestSource{}
-	/*_ = t.Decoder.DecodeRSA(req.Token, tokenRequest)*/
-	tokenRequest.Card = schemas.Card{
-		Name:        "Anthony Torres",
-		Number:      "453473482462342",
-		ExpiryMonth: "02",
-		ExpiryYear:  "03",
-		Cvv:         "123",
-	}
-	tokenRequest.Client.Email = "anthonybastidas48@gmail.com"
-	tokenRequest.Source = "001"
-	switch tokenRequest.Source {
+func (t *TokenService) ProcessToken(req *schemas.TokenRequestSource) (*schemas.TokenResponse, error) {
+
+	req.Client.Email = "anthonybastidas48@gmail.com"
+	req.Source = "001"
+	switch req.Source {
 	case "001":
-		res := t.generateVaultToken(*tokenRequest)
+		res := t.generateVaultToken(*req)
 		vault := fmt.Sprintf("%s%s%s%s%s%s%s%s%s", res[0], "ksk|", res[1], "ksk|", res[2], "ksk|", res[3], "ksk|", res[4])
 		uEnc := base64.URLEncoding.EncodeToString([]byte(vault))
 
@@ -58,8 +50,14 @@ func (t *TokenService) ProcessToken(req *schemas.TokenRequest) (*schemas.TokenRe
 		}
 		return response, nil
 	case "002":
-		cvv, _ := t.DecoderVault.EncodeRSA([]byte(tokenRequest.Card.Cvv))
-		t.Mongo.UpdateDocument(tokenRequest.CardId, string(cvv))
+		res, _ := t.Mongo.GetItem(req.CardId)
+		cvv, _ := t.DecoderVault.EncodeRSA([]byte(req.Card.Cvv))
+		t.Mongo.UpdateDocument(req.CardId, string(cvv))
+		response := &schemas.TokenResponse{
+			Token: res.Vault,
+			Type:  "001",
+		}
+		return response, nil
 	default:
 		return nil, errors.New("invalid source")
 

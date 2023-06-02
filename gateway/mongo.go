@@ -12,6 +12,7 @@ import (
 
 type IMongo interface {
 	GetDocument(email string) ([]schemas.TokenDB, error)
+	GetItem(id string) (schemas.TokenDB, error)
 	PutDocument(request interface{}) bool
 	UpdateDocument(id, cvv string) bool
 }
@@ -51,7 +52,7 @@ func (m *Mongo) GetDocument(email string) ([]schemas.TokenDB, error) {
 		err := cur.Decode(data)
 
 		if err != nil {
-			fmt.Println(err)
+			log.Println("error decoding item ", err)
 			continue
 		}
 
@@ -71,7 +72,7 @@ func (m *Mongo) PutDocument(request interface{}) bool {
 	res, err := m.conn.InsertOne(context.Background(), request)
 
 	if err != nil {
-		fmt.Println("Error ", err)
+		log.Println("error inserting item ", err)
 		return false
 	}
 
@@ -84,15 +85,27 @@ func (m *Mongo) UpdateDocument(id, cvv string) bool {
 	res, err := m.conn.UpdateOne(context.Background(), bson.M{"id": id}, bson.D{{"$set", bson.M{"cvv": cvv}}})
 
 	if err != nil {
-		log.Println("ERROR NO ITEMS UPDATED", err)
+		log.Println("error updating item ", err)
 		return false
 	}
 
 	if res.ModifiedCount == 0 {
-		log.Println("ZERO ITEMS UPDATED")
+		log.Println("zero items updated")
 		return false
 	}
 
-	log.Println("UPDATED :D")
+	log.Println("updated successfully")
 	return true
+}
+
+func (m *Mongo) GetItem(id string) (schemas.TokenDB, error) {
+	item := &schemas.TokenDB{}
+
+	err := m.conn.FindOne(context.Background(), bson.M{"id": id}).Decode(item)
+	if err != nil {
+		log.Println("error getting item ", err)
+		return schemas.TokenDB{}, err
+	}
+
+	return *item, nil
 }

@@ -12,16 +12,12 @@ import (
 	"net/http"
 )
 
-type hh struct {
-	Hola string `json:"hola"`
-}
-
 func TokensHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Init Token Service")
 
 	req, _ := ioutil.ReadAll(r.Body)
 
-	a := &schemas.TokenRequest{}
+	a := &schemas.TokenRequestSource{}
 
 	if err := json.Unmarshal(req, a); err != nil {
 		fmt.Println(err)
@@ -48,6 +44,9 @@ func CardsHandler(w http.ResponseWriter, r *http.Request) {
 	ans, _ := json.Marshal(res)
 
 	w.Write(ans)
+}
+func Charge(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("true"))
 }
 
 func Email(w http.ResponseWriter, r *http.Request) {
@@ -79,6 +78,7 @@ func main() {
 	r.HandleFunc("/tokens", TokensHandler).Methods("POST")
 	r.HandleFunc("/cards", CardsHandler).Methods("POST")
 	r.HandleFunc("/email", Email).Methods("POST")
+	r.HandleFunc("/charge", Charge).Methods("POST")
 	handler := c.Handler(r)
 	http.ListenAndServe(":80", handler)
 }
