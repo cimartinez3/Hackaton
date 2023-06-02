@@ -4,28 +4,27 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
+	"github.com/rs/cors"
 	"io/ioutil"
 	"kushki/hackaton/gateway"
 	"kushki/hackaton/schemas"
+	"kushki/hackaton/service"
 	"net/http"
 )
 
 func TokensHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Init Token Service")
 
-	mg := gateway.NewMongoService()
-
 	req, _ := ioutil.ReadAll(r.Body)
 
-	a := schemas.TokenRequest{}
+	a := &schemas.TokenRequest{}
 
-	if err := json.Unmarshal(req, &a); err != nil {
+	if err := json.Unmarshal(req, a); err != nil {
 		fmt.Println(err)
 		return
 	}
-	res := mg.PutDocument(a)
-
-	fmt.Println(res)
+	service := service.NewTokenService()
+	service.ProcessToken(a)
 
 	w.Write([]byte("success"))
 
@@ -50,11 +49,15 @@ func Email(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	c := cors.New(cors.Options{
+		AllowedOrigins:   []string{"*"},
+		AllowedHeaders:   []string{"*"},
+		AllowCredentials: true,
+	})
 	r := mux.NewRouter()
-	r.Host("www.kushihackaton.com")
 	r.HandleFunc("/tokens", TokensHandler).Methods("POST")
 	r.HandleFunc("/cards", CardsHandler).Methods("GET")
 	r.HandleFunc("/email", Email).Methods("GET")
-	http.Handle("/", r)
-	http.ListenAndServe(":80", r)
+	handler := c.Handler(r)
+	http.ListenAndServe(":80", handler)
 }

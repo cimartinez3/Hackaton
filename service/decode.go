@@ -3,8 +3,9 @@ package service
 import (
 	"crypto/rand"
 	"crypto/rsa"
-	"crypto/sha512"
+	"crypto/sha256"
 	"crypto/x509"
+	"encoding/base64"
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
@@ -13,7 +14,7 @@ import (
 )
 
 type IRSA interface {
-	DecodeRSA(data []byte, out interface{}) error
+	DecodeRSA(data string, out interface{}) error
 	EncodeRSA(data []byte) ([]byte, error)
 }
 
@@ -33,9 +34,11 @@ func NewRSAService(private, public string) IRSA {
 	}
 }
 
-func (r *RSA) DecodeRSA(data []byte, out interface{}) error {
-	hash := sha512.New()
-	plaintext, err := rsa.DecryptOAEP(hash, rand.Reader, r.PrivateKey, data, nil)
+func (r *RSA) DecodeRSA(data string, out interface{}) error {
+	rawDecodedText, _ := base64.StdEncoding.DecodeString(data)
+
+	hash := sha256.New()
+	plaintext, err := rsa.DecryptOAEP(hash, rand.Reader, r.PrivateKey, rawDecodedText, nil)
 	fmt.Println(plaintext)
 	if err != nil {
 		fmt.Print("Error in decode RSA: ", err)
@@ -48,7 +51,7 @@ func (r *RSA) DecodeRSA(data []byte, out interface{}) error {
 	return nil
 }
 func (r *RSA) EncodeRSA(data []byte) ([]byte, error) {
-	hash := sha512.New()
+	hash := sha256.New()
 	ciphertext, err := rsa.EncryptOAEP(hash, rand.Reader, r.PublicKey, data, nil)
 	if err != nil {
 		fmt.Println(err)

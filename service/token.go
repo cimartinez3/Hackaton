@@ -19,13 +19,13 @@ func NewTokenService() *TokenService {
 	return &TokenService{
 		Mongo:        gateway.NewMongoService(),
 		Decoder:      NewRSAService("./keys/id_rsa_ksk", "./keys/id_rsa_ksk.pub"),
-		DecoderVault: NewRSAService("./keys/id_rsa_vault", "./keys/id_rsa_vault.pub"),
+		DecoderVault: NewRSAService("./keys/id_rsa_vault_ksk", "./keys/id_rsa_vault_ksk.pub"),
 	}
 }
 
-func (t *TokenService) ProcessToken(req schemas.TokenRequest) (string, error) {
+func (t *TokenService) ProcessToken(req *schemas.TokenRequest) (string, error) {
 	tokenRequest := &schemas.TokenRequestSource{}
-	_ = t.Decoder.DecodeRSA([]byte(req.Token), tokenRequest)
+	_ = t.Decoder.DecodeRSA(req.Token, tokenRequest)
 	switch tokenRequest.Source {
 	case "001":
 		res := t.generateVaultToken(*tokenRequest)
